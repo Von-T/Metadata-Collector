@@ -2,20 +2,20 @@
   <div>
     <div id="main-page">
       <div class="title-container">
-        <button @click="addRow">Add Use Case</button>
-        <h1>Fields to Discuss</h1>
+        <button class="ui-buttons" @click="addRow">Add Use Case</button>
+        <h1 id="main-title">Fields to Discuss</h1>
       </div>
-      <table>
+      <table id="main-table">
         <thead>
           <tr>
-            <th v-for="(header, index) in headers" :key="index">{{ header }}</th>
-            <th>Actions</th>
+            <th class="main-table-header" v-for="(header, index) in headers" :key="index">{{ header }}</th>
+            <th class="main-table-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, rowIndex) in rows" :key="row.id">
             <!-- Display each field -->
-            <td v-for="(cell, cellIndex) in row.data" :key="cellIndex">
+            <td class="main-table-data" v-for="(cell, cellIndex) in row.data" :key="cellIndex">
               <!-- Render dropdown for 'Field Status' and 'Definition Status' -->
               <template
                 v-if="
@@ -34,9 +34,9 @@
                 <span>{{ cell.length > 10 ? cell.slice(0, 10) + '...' : cell }}</span> <!-- Limit the amount of text that can display in each cell in main page -->
               </template>
             </td>
-            <td>
-              <button @click="editRow(row, rowIndex)">Edit</button>
-              <button @click="deleteRow(rowIndex)">Delete</button>
+            <td class="main-table-data">
+              <button class="ui-buttons" @click="editRow(row, rowIndex)">Edit</button>
+              <button class="ui-buttons" @click="deleteRow(rowIndex)">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -46,7 +46,7 @@
     <!-- Pop-up Modal -->
     <div v-if="isEditing" class="modal">
       <div class="modal-content">
-        <h3>Edit Use Case</h3>
+        <h3 id="modal-title">Edit Use Case</h3>
         <form class="form-container">
           <div class="form-column">
             <div v-for="(header, index) in leftHeaders" :key="index" class="form-field">
@@ -59,11 +59,12 @@
                 <option value="Needs More Discussion">Needs More Discussion</option>
                 <option value="Canceled">Canceled</option>
               </select>
-              <textarea
+              <textarea 
+                class="text-area-fields"
                 v-else-if="header === 'Definition'"
                 v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
+              <input class="input-fields" v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
             </div>
           </div>
           <div class="form-column">
@@ -77,16 +78,17 @@
                 <option value="Needs More Discussion">Needs More Discussion</option>
                 <option value="Canceled">Canceled</option>
               </select>
-              <textarea
+              <textarea 
+                class="text-area-fields"
                 v-else-if="header === 'Notes'"
                 v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
+              <input class="input-fields" v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
             </div>
           </div>
           <div class="modal-actions">
-            <button type="button" @click="saveChanges">Save</button>
-            <button type="button" @click="closeModal">Exit</button>
+            <button class="ui-buttons" type="button" @click="saveChanges">Save</button>
+            <button class="ui-buttons" type="button" @click="closeModal">Exit</button>
           </div>
         </form>
       </div>
@@ -181,21 +183,20 @@ export default {
   width: 100%; /* Match the width of #main-page */
   margin-bottom: 20px;
 }
-h1 {
+#main-title {
   font-size: 50px;
   flex-grow: 1;
   text-align: center;
 }
-button {
+.ui-buttons {
   margin: 5px;
   padding: 5px 10px;
 }
-table {
+.main-table {
   width: 100%; /* Table stretches to fit the container */
   border-collapse: collapse;
 }
-th,
-td {
+.main-table-header, .main-table-data {
   padding: 8px;
   border: 1px solid #ddd;
   text-align: left;
@@ -223,7 +224,7 @@ td {
   display: flex;
   flex-direction: column;
 }
-h3 {
+#modal-title {
   margin-bottom: 15px;
 }
 .form-container {
@@ -239,8 +240,7 @@ h3 {
 .form-field {
   margin-bottom: 10px;
 }
-textarea,
-input {
+.text-area-fields, .input-fields {
   width: 100%;
   padding: 5px;
   margin-top: 5px;
@@ -248,7 +248,7 @@ input {
 }
 
 /* Increase size of Definition and Notes textareas */
-textarea {
+.text-area-fields {
   min-height: 120px; /* Larger height */
   min-width: 220px; /* Larger width */
 }

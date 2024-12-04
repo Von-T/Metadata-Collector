@@ -1,22 +1,27 @@
 <template>
   <div>
     <div id="main-page">
+      <!-- Title section with a button to add a new row -->
       <div class="title-container">
         <button class="ui-buttons" @click="addRow">Add Use Case</button>
         <h1 id="main-title">Fields to Discuss</h1>
       </div>
+
+      <!-- Table to display all rows -->
       <table id="main-table">
         <thead>
           <tr>
+            <!-- Render table headers dynamically from the headers array -->
             <th class="main-table-header" v-for="(header, index) in headers" :key="index">{{ header }}</th>
-            <th class="main-table-header">Actions</th>
+            <th class="main-table-header">Actions</th> <!-- Extra column for action buttons -->
           </tr>
         </thead>
         <tbody>
+          <!-- Loop through each row and render its data -->
           <tr v-for="(row, rowIndex) in rows" :key="row.id">
-            <!-- Display each field -->
+            <!-- Loop through each cell of the row -->
             <td class="main-table-data" v-for="(cell, cellIndex) in row.data" :key="cellIndex">
-              <!-- Render dropdown for 'Field Status' and 'Definition Status' -->
+              <!-- Render a dropdown for specific fields ('Field Status' and 'Definition Status') -->
               <template
                 v-if="
                   headers[cellIndex] === 'Field Status' ||
@@ -29,11 +34,12 @@
                   <option value="Canceled">Canceled</option>
                 </select>
               </template>
-              <!-- Render text for other fields -->
+              <!-- Render plain text for other fields -->
               <template v-else>
-                <span>{{ cell.length > 10 ? cell.slice(0, 10) + '...' : cell }}</span> <!-- Limit the amount of text that can display in each cell in main page -->
+                <span>{{ cell.length > 10 ? cell.slice(0, 10) + '...' : cell }}</span> <!-- Limit displayed text length -->
               </template>
             </td>
+            <!-- Action buttons for editing and deleting rows -->
             <td class="main-table-data">
               <button class="ui-buttons" @click="editRow(row, rowIndex)">Edit</button>
               <button class="ui-buttons" @click="deleteRow(rowIndex)">Delete</button>
@@ -43,14 +49,16 @@
       </table>
     </div>
 
-    <!-- Pop-up Modal -->
+    <!-- Pop-up Modal for editing a row -->
     <div v-if="isEditing" class="modal">
       <div class="modal-content">
         <h3 id="modal-title">Edit Use Case</h3>
         <form class="form-container">
           <div class="form-column">
+            <!-- Render input fields for the left section of the form -->
             <div v-for="(header, index) in leftHeaders" :key="index" class="form-field">
               <label>{{ header }}</label>
+              <!-- Dropdown for 'Field Status' -->
               <select
                 v-if="header === 'Field Status'"
                 v-model="editedRow.data[headers.indexOf(header)]"
@@ -59,17 +67,26 @@
                 <option value="Needs More Discussion">Needs More Discussion</option>
                 <option value="Canceled">Canceled</option>
               </select>
-              <textarea 
+              <!-- Textarea for 'Definition' -->
+              <textarea
                 class="text-area-fields"
                 v-else-if="header === 'Definition'"
                 v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input class="input-fields" v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
+              <!-- Text input for other fields -->
+              <input
+                class="input-fields"
+                v-else
+                type="text"
+                v-model="editedRow.data[headers.indexOf(header)]"
+              />
             </div>
           </div>
           <div class="form-column">
+            <!-- Render input fields for the right section of the form -->
             <div v-for="(header, index) in rightHeaders" :key="index" class="form-field">
               <label>{{ header }}</label>
+              <!-- Dropdown for 'Definition Status' -->
               <select
                 v-if="header === 'Definition Status'"
                 v-model="editedRow.data[headers.indexOf(header)]"
@@ -78,14 +95,22 @@
                 <option value="Needs More Discussion">Needs More Discussion</option>
                 <option value="Canceled">Canceled</option>
               </select>
-              <textarea 
+              <!-- Textarea for 'Notes' -->
+              <textarea
                 class="text-area-fields"
                 v-else-if="header === 'Notes'"
                 v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input class="input-fields" v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
+              <!-- Text input for other fields -->
+              <input
+                class="input-fields"
+                v-else
+                type="text"
+                v-model="editedRow.data[headers.indexOf(header)]"
+              />
             </div>
           </div>
+          <!-- Buttons for saving or canceling changes -->
           <div class="modal-actions">
             <button class="ui-buttons" type="button" @click="saveChanges">Save</button>
             <button class="ui-buttons" type="button" @click="closeModal">Exit</button>
@@ -97,7 +122,8 @@
 </template>
 
 <script>
-import { v4 as uuidv4 } from 'uuid' // UUID library for unique IDs
+// VT TODO: May want to use different unique ID scheme if database has ints for IDs, since this `uuid` library generates string IDs (e.g. '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed')
+import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
 
 export default {
   data() {
@@ -114,53 +140,61 @@ export default {
       ],
       rows: [
         {
-          id: uuidv4(), // Unique ID
-          data: ['', '', '', '', '', '', '', ''], // Row data
+          id: uuidv4(), // Unique ID for each row
+          data: ['', '', '', '', '', '', '', ''], // Array holding row data
         },
       ],
-      isEditing: false,
-      editedRow: null,
-      editingRowIndex: null,
-      leftHeaders: ['Field Name', 'Field Status', 'Topic Name', 'Definition'],
-      rightHeaders: ['Example', 'Definition Status', 'View Name', 'Notes'],
-    }
+      isEditing: false, // Tracks if the modal is open
+      editedRow: null, // Holds the row currently being edited
+      editingRowIndex: null, // Index of the row being edited
+      leftHeaders: ['Field Name', 'Field Status', 'Topic Name', 'Definition'], // Headers for the left section of the modal
+      rightHeaders: ['Example', 'Definition Status', 'View Name', 'Notes'], // Headers for the right section of the modal
+    };
+  },
+  created() {
+    // Automatically fetch data from the database after the `data()` is initialized
+    // VT TODO: This function automatically runs after `data()` is initialized, so use this place to get data from database and add it to `this.rows` here
   },
   methods: {
+    // Add a new row to the table
     addRow() {
       this.rows.unshift({
-        id: uuidv4(), // Generate a new unique ID
-        data: ['', '', '', '', '', '', '', ''], // Empty row data
-      })
-      // TODO: Add the new row to the database (note every row should have a unique ID)
+        id: uuidv4(), // Assign a new unique ID
+        data: ['', '', '', '', '', '', '', ''], // Initialize with empty fields
+      });
+      // VT TODO: Add the new row to the database here
     },
+    // Delete a row from the table
     deleteRow(index) {
-      // TODO: Remove the corresponding row from the database using its ID (note every row should have a unique ID)
-      this.rows.splice(index, 1)
+      this.rows.splice(index, 1); // Remove row by index
+      // VT TODO: Remove the corresponding row from the database using its unique ID here
     },
+    // Open the modal and populate it with the selected row's data
     editRow(row, index) {
-      this.editedRow = { ...row } // Copy the row data
-      this.editingRowIndex = index
-      this.isEditing = true // Show the modal
+      this.editedRow = { ...row }; // Create a copy to avoid direct mutation
+      this.editingRowIndex = index; // Store the index of the row being edited
+      this.isEditing = true; // Open the modal
     },
+    // Save changes made in the modal
     saveChanges() {
       if (this.editingRowIndex !== null) {
-        // Update the row data while preserving the ID
+        // Update the specific row with the edited data while retaining the unique ID
         this.rows[this.editingRowIndex] = {
           ...this.editedRow,
           id: this.rows[this.editingRowIndex].id,
-        }
+        };
       }
-      // TODO: Update the database with the changes using the row's ID (note every row should have a unique ID)
-      console.log(this.rows[this.editingRowIndex])
-      this.closeModal()
+      // VT TODO: Update the database with the edited row's data here
+      this.closeModal();
     },
+    // Close the modal and reset editing state
     closeModal() {
-      this.isEditing = false
-      this.editedRow = null
-      this.editingRowIndex = null
+      this.isEditing = false; // Close the modal
+      this.editedRow = null; // Clear the edited row data
+      this.editingRowIndex = null; // Reset the index
     },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -175,7 +209,6 @@ export default {
   padding: 20px; /* Optional: Add padding inside the div */
   box-sizing: border-box; /* Include padding in width calculation */
 }
-/* Layout styles */
 .title-container {
   display: flex;
   align-items: center;
@@ -201,7 +234,6 @@ export default {
   border: 1px solid #ddd;
   text-align: left;
 }
-/* Modal styles */
 .modal {
   position: fixed;
   top: 0;
@@ -220,7 +252,8 @@ export default {
   width: 600px;
   max-width: 90%;
   max-height: 80%; /* Set max height for the modal */
-  overflow-y: auto; /* Make content scrollable if it overflows */
+  overflow-y: auto; /* Make content scrollable if it overflows in y direction */
+  overflow-x: auto; /* Make content scrollable if it overflows in y direction */
   display: flex;
   flex-direction: column;
 }
@@ -246,13 +279,11 @@ export default {
   margin-top: 5px;
   box-sizing: border-box;
 }
-
 /* Increase size of Definition and Notes textareas */
 .text-area-fields {
   min-height: 120px; /* Larger height */
   min-width: 220px; /* Larger width */
 }
-
 .modal-actions {
   display: flex;
   justify-content: space-between;

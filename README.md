@@ -19,8 +19,8 @@ npm install uuid # Only if uuid library is used, otherwise can remove
 ## Compile, Minify, Format (Only have to Run Once)
 
 ```sh
-npm run build;
-npm run format;
+npm run build
+npm run format
 ```
 
 ## Compile and Hot-Reload for Development (Run for when you want to Open Localhost)

@@ -162,7 +162,7 @@ export default {
         id: uuidv4(), // Assign a new unique ID
         data: ['', '', '', '', '', '', '', ''], // Initialize with empty fields
       });
-      // VT TODO: Add the new row to the database here
+      // VT TODO: Maybe add the new row to the database here (may not want to though since there's no point adding this empty row to yet so do other TODOs first)
     },
     // Delete a row from the table
     deleteRow(index) {

@@ -13,11 +13,26 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(row, rowIndex) in rows" :key="rowIndex">
-            <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-              <span>
-                {{ cell.length > 50 ? cell.slice(0, 50) + '...' : cell }}
-              </span>
+          <tr v-for="(row, rowIndex) in rows" :key="row.id">
+            <!-- Display each field -->
+            <td v-for="(cell, cellIndex) in row.data" :key="cellIndex">
+              <!-- Render dropdown for 'Field Status' and 'Definition Status' -->
+              <template
+                v-if="
+                  headers[cellIndex] === 'Field Status' ||
+                  headers[cellIndex] === 'Definition Status'
+                "
+              >
+                <select v-model="row.data[cellIndex]">
+                  <option value="Approved">Approved</option>
+                  <option value="Needs More Discussion">Needs More Discussion</option>
+                  <option value="Canceled">Canceled</option>
+                </select>
+              </template>
+              <!-- Render text for other fields -->
+              <template v-else>
+                <span>{{ cell.length > 10 ? cell.slice(0, 10) + '...' : cell }}</span> <!-- Limit the amount of text that can display in each cell in main page -->
+              </template>
             </td>
             <td>
               <button @click="editRow(row, rowIndex)">Edit</button>
@@ -36,29 +51,37 @@
           <div class="form-column">
             <div v-for="(header, index) in leftHeaders" :key="index" class="form-field">
               <label>{{ header }}</label>
+              <select
+                v-if="header === 'Field Status'"
+                v-model="editedRow.data[headers.indexOf(header)]"
+              >
+                <option value="Approved">Approved</option>
+                <option value="Needs More Discussion">Needs More Discussion</option>
+                <option value="Canceled">Canceled</option>
+              </select>
               <textarea
-                v-if="header === 'Definition'"
-                v-model="editedRow[headers.indexOf(header)]"
+                v-else-if="header === 'Definition'"
+                v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input
-                v-else
-                type="text"
-                v-model="editedRow[headers.indexOf(header)]"
-              />
+              <input v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
             </div>
           </div>
           <div class="form-column">
             <div v-for="(header, index) in rightHeaders" :key="index" class="form-field">
               <label>{{ header }}</label>
+              <select
+                v-if="header === 'Definition Status'"
+                v-model="editedRow.data[headers.indexOf(header)]"
+              >
+                <option value="Approved">Approved</option>
+                <option value="Needs More Discussion">Needs More Discussion</option>
+                <option value="Canceled">Canceled</option>
+              </select>
               <textarea
-                v-if="header === 'Notes'"
-                v-model="editedRow[headers.indexOf(header)]"
+                v-else-if="header === 'Notes'"
+                v-model="editedRow.data[headers.indexOf(header)]"
               ></textarea>
-              <input
-                v-else
-                type="text"
-                v-model="editedRow[headers.indexOf(header)]"
-              />
+              <input v-else type="text" v-model="editedRow.data[headers.indexOf(header)]" />
             </div>
           </div>
           <div class="modal-actions">
@@ -72,56 +95,70 @@
 </template>
 
 <script>
+import { v4 as uuidv4 } from 'uuid' // UUID library for unique IDs
+
 export default {
   data() {
     return {
       headers: [
-        "Field Name",
-        "Field Status",
-        "Definition",
-        "Definition Status",
-        "Topic Name",
-        "View Name",
-        "Example",
-        "Notes",
+        'Field Name',
+        'Field Status',
+        'Definition',
+        'Definition Status',
+        'Topic Name',
+        'View Name',
+        'Example',
+        'Notes',
       ],
       rows: [
-        ["", "", "", "", "", "", "", ""],
+        {
+          id: uuidv4(), // Unique ID
+          data: ['', '', '', '', '', '', '', ''], // Row data
+        },
       ],
       isEditing: false,
-      editedRow: [],
+      editedRow: null,
       editingRowIndex: null,
-      leftHeaders: ["Field Name", "Field Status", "Topic Name", "Definition"],
-      rightHeaders: ["Example", "Definition Status", "View Name", "Notes"],
-    };
+      leftHeaders: ['Field Name', 'Field Status', 'Topic Name', 'Definition'],
+      rightHeaders: ['Example', 'Definition Status', 'View Name', 'Notes'],
+    }
   },
   methods: {
     addRow() {
-      this.rows.push(["", "", "", "", "", "", "", ""]);
+      this.rows.unshift({
+        id: uuidv4(), // Generate a new unique ID
+        data: ['', '', '', '', '', '', '', ''], // Empty row data
+      })
+      // TODO: Add the new row to the database (note every row should have a unique ID)
     },
     deleteRow(index) {
-      this.rows.splice(index, 1);
+      // TODO: Remove the corresponding row from the database using its ID (note every row should have a unique ID)
+      this.rows.splice(index, 1)
     },
     editRow(row, index) {
-      this.editedRow = [...row]; // Create a copy of the row's data
-      this.editingRowIndex = index;
-      this.isEditing = true; // Show the modal
+      this.editedRow = { ...row } // Copy the row data
+      this.editingRowIndex = index
+      this.isEditing = true // Show the modal
     },
     saveChanges() {
       if (this.editingRowIndex !== null) {
-        // Update the corresponding row in the rows array directly
-        this.rows[this.editingRowIndex] = [...this.editedRow];
+        // Update the row data while preserving the ID
+        this.rows[this.editingRowIndex] = {
+          ...this.editedRow,
+          id: this.rows[this.editingRowIndex].id,
+        }
       }
-      this.closeModal();
+      // TODO: Update the database with the changes using the row's ID (note every row should have a unique ID)
+      console.log(this.rows[this.editingRowIndex])
+      this.closeModal()
     },
     closeModal() {
-      // Close modal without saving changes
-      this.isEditing = false;
-      this.editedRow = [];
-      this.editingRowIndex = null;
+      this.isEditing = false
+      this.editedRow = null
+      this.editingRowIndex = null
     },
   },
-};
+}
 </script>
 
 <style scoped>
@@ -157,7 +194,8 @@ table {
   width: 100%; /* Table stretches to fit the container */
   border-collapse: collapse;
 }
-th, td {
+th,
+td {
   padding: 8px;
   border: 1px solid #ddd;
   text-align: left;
@@ -201,7 +239,8 @@ h3 {
 .form-field {
   margin-bottom: 10px;
 }
-textarea, input {
+textarea,
+input {
   width: 100%;
   padding: 5px;
   margin-top: 5px;
@@ -211,7 +250,7 @@ textarea, input {
 /* Increase size of Definition and Notes textareas */
 textarea {
   min-height: 120px; /* Larger height */
-  min-width: 220px;  /* Larger width */
+  min-width: 220px; /* Larger width */
 }
 
 .modal-actions {
